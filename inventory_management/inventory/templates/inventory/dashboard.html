@@ -1,66 +1,118 @@
 {% extends 'inventory/base.html' %}
 
 {% block content %}
-	{% if messages %}
-		<div class="row mt-3">
-			{% for message in messages %}
-				{% if message.tags == 'error' %}
-					<div class="col-md-10 col-12 mx-auto alert alert-danger">
-						{{ message }}
-					</div>
-				{% else %}
-					<div class="col-md-10 col-12 mx-auto alert alert-success">
-						{{ message }}
-					</div>
-				{% endif %}
-			{% endfor %}
-		</div>
-	{% endif %}
-	<div class="row">
-		<div class="col-md-10 col-12 mx-auto mt-5">
-			<div class="d-flex justify-content-end">
-				<a href="{% url 'add-item' %}" class="btn btn-primary">+</a>
-			</div>
-
-			<table class="table table-hover table-striped">
-				<thead>
-					<tr>
-						<th scope="col">ID</th>
-						<th scope="col">Name</th>
-						<th scope="col">Qty</th>
-						<th scope="col">Category</th>
-						<th scope="col"></th>
-						<th scope="col"></th>
-					</tr>
-				</thead>
-				<tbody>
-					{% if items|length == 0 %}
-					<tr>
-						<th scope="row">-</th>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td></td>
-					</tr>
-					{% endif %}
-
-					{% for item in items %}
-					<tr>
-						<th scope="row">{{ item.id }}</th>
-						<td>{{ item.name }}</td>
-						{% if item.id in low_inventory_ids %}
-							<td class="text-danger">{{ item.quantity }}</td>
-						{% else %}
-							<td class="text-success">{{ item.quantity }}</td>
-						{% endif %}
-						<td>{{ item.category.name }}</td>
-						<td><a href="{% url 'edit-item' item.id %}" class="btn btn-outline-secondary">Edit</a></td>
-						<td><a href="{% url 'delete-item' item.id %}" class="btn btn-secondary">Delete</a></td>
-					</tr>
-					{% endfor %}
-				</tbody>
-			</table>
-		</div>
+{% if messages %}
+<div class="row mt-3">
+	{% for message in messages %}
+	{% if message.tags == 'error' %}
+	<div class="col-md-10 col-12 mx-auto alert alert-danger">
+		{{ message }}
 	</div>
+	{% else %}
+	<div class="col-md-10 col-12 mx-auto alert alert-success">
+		{{ message }}
+	</div>
+	{% endif %}
+	{% endfor %}
+</div>
+{% endif %}
+<!--Serach Bar-->
+<form method="GET" action="{% url 'dashboard' %}">
+	<input type="text" id='searchBar' name="q" placeholder="Search by name or SKU" value="{{ request.GET.q }}">
+</form>
+
+<div class="row">
+	<div class="col-md-10 col-12 mx-auto mt-5">
+		<div class="d-flex justify-content-end">
+			<a href="{% url 'add-item' %}" class="btn btn-primary">+</a>
+			<a href="{% url 'import-inventory-csv' %}" class="btn btn-primary">I</a>
+			<a href="{% url 'export_inventory_to_csv' %}" class="btn btn-primary">D</a>
+		</div>
+		<table class="table table-hover table-striped">
+			<thead>
+				<tr>
+					<th scope="col">ID</th>
+					<th scope="col">Image</th>
+					<th scope="col">Name</th>
+					<th scope="col">Qty</th>
+					<th scope="col">Price</th>
+					<th scope="col">
+						<select id="categoryFilter" onchange="filterByCategory()">
+							<option value="" disabled selected hidden>Category</option>
+							<option value="">All</option>
+							{% for category in categories %}
+							<option value="{{ category }}">{{ category }}</option>
+							{% endfor %}
+						</select>
+					</th>
+					<th scope="col">Barcodes</th>
+					<th scope="col">SKU</th>
+					<th scope="col"></th>
+					<th scope="col"></th>
+				</tr>
+			</thead>
+			<tbody>
+				{% if items|length == 0 %}
+				<tr>
+					<th scope="row">-</th>
+					<td>-</td>
+					<td>-</td>
+					<td>-</td>
+					<td>-</td>
+					<td>-</td>
+					<td>-</td>
+					<td>-</td>
+					<td>-</td>
+					<td></td>
+				</tr>
+				{% endif %}
+
+				{% for item in items %}
+				<tr>
+					<th scope="row">{{ item.id }}</th>
+					<td>
+						{% if item.image %}
+						<img src="{{ item.image.url }}" alt="{{ item.name }} Image" width="100" height="100">
+						{% else %}
+						<p>No image available</p>
+						{% endif %}
+					</td>
+					<td>{{ item.name }}</td>
+					{% if item.id in low_inventory_ids %}
+					<td class="text-danger">{{ item.quantity }}</td>
+					{% else %}
+					<td class="text-success">{{ item.quantity }}</td>
+					{% endif %}
+					<td>{{ item.price }}</td>
+					<td>{{ item.category }}</td>
+					<td>{{ item.barcodes }}</td>
+					<td>{{ item.sku }}</td>
+					<td><a href="{% url 'edit-item' item.id %}" class="btn btn-outline-secondary">Edit</a></td>
+					<td><a href="{% url 'delete-item' item.id %}" class="btn btn-secondary">Delete</a></td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+</div>
+
+<script>
+	function filterByCategory() {
+		var category = document.getElementById('categoryFilter').value;
+		var searchBar = document.getElementById('searchBar').value;
+		var url = "{% url 'dashboard' %}?";
+		if (category) {
+			url += "category=" + encodeURIComponent(category);
+		}
+		if (searchBar) {
+			url += (category ? "&" : "") + "q=" + encodeURIComponent(searchBar);
+		}
+
+		// Redirect to the constructed URL
+		window.location.href = url;
+		// Redirect to the view with the selected category as a query parameter
+		//window.location.href = "{% url 'dashboard' %}?category=" + encodeURIComponent(category);
+	}
+
+</script>
 {% endblock content %}

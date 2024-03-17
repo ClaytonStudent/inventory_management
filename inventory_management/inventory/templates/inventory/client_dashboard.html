@@ -1,0 +1,77 @@
+{% extends 'inventory/base.html' %}
+
+{% block content %}
+{% if messages %}
+<div class="row mt-3">
+    {% for message in messages %}
+    {% if message.tags == 'error' %}
+    <div class="col-md-10 col-12 mx-auto alert alert-danger">
+        {{ message }}
+    </div>
+    {% else %}
+    <div class="col-md-10 col-12 mx-auto alert alert-success">
+        {{ message }}
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+<div class="row">
+    <div class="col-md-10 col-12 mx-auto mt-5">
+        <div class="d-flex justify-content-end">
+            <a href="{% url 'add-client' %}" class="btn btn-primary">+</a>
+            <a href="{% url 'import-client-csv' %}" class="btn btn-primary">U</a>
+        </div>
+        <table class="table table-hover table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">salesman</th>
+                    <th scope="col">company_name</th>
+                    <th scope="col">email</th>
+                    <th scope="col">phone_number</th>
+                    <th scope="col">address</th>
+                    <th scope="col">city</th>
+                    <th scope="col">postal_code</th>
+                    <th scope="col">tax_number</th>
+                    <th scope="col"></th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if clients|length == 0 %}
+                <tr>
+                    <th scope="row">-</th>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td></td>
+                </tr>
+                {% endif %}
+
+                {% for client in clients %}
+                <tr>
+                    <th scope="row">{{ client.id }}</th>
+                    <td>{{ client.salesman }}</td>
+                    <td>{{ client.company_name }}</td>
+                    <td>{{ client.email }}</td>
+                    <td>{{ client.phone_number }}</td>
+                    <td>{{ client.address }}</td>
+                    <td>{{ client.city }}</td>
+                    <td>{{ client.postal_code }}</td>
+                    <td>{{ client.tax_number }}</td>
+                    <td><a href="{% url 'edit-client' client.id %}" class="btn btn-outline-secondary">Edit</a></td>
+                    <td><a href="{% url 'delete-client' client.id %}" class="btn btn-secondary">Delete</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock content %}

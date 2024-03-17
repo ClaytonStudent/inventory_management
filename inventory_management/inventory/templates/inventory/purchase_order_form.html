@@ -1,0 +1,24 @@
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    {{ formset.management_form }}
+
+    <div id="formset-container">
+        {% for subform in formset %}
+        {{ subform }}
+        {% endfor %}
+    </div>
+
+    <button type="button" id="add-form">Add another item</button>
+    <input type="submit" value="Submit">
+</form>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/django-dynamic-formset/1.0.14/jquery.formset.min.js"></script>
+
+<script>
+    $('#formset-container').formset({
+        addText: 'Add another item',
+        deleteText: 'Remove'
+    });
+</script>

@@ -1,0 +1,197 @@
+{% extends 'inventory/base.html' %}
+{% block content %}
+{% if messages %}
+
+<div class="row mt-3">
+    {% for message in messages %}
+    {% if message.tags == 'error' %}
+    <div class="col-md-10 col-12 mx-auto alert alert-danger">
+        {{ message }}
+    </div>
+    {% else %}
+    <div class="col-md-10 col-12 mx-auto alert alert-success">
+        {{ message }}
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+<div class="row">
+    <div class="col-md-10 col-12 mx-auto mt-5">
+        <p> ID: {{order.order_number}} Status: {{order.status}} Created_at: {{order.created_at}} </p>
+        <p> Salesman: {{order.client.salesman}} </p>
+        <p> Client: {{order.client.company_name}} </p>
+        <p> Address: {{order.client.address}} </p>
+        <p> Total Price{{order.total_price}} </p>
+        <p> Note: {{order.note}} </p>
+
+    </div>
+
+</div>
+
+<div class="row">
+    <div class="col-md-10 col-12 mx-auto mt-5">
+        <div class="d-flex justify-content-end">
+            {% if order.pk %}
+            <a href="{% url 'add-order-item' pk=order.pk %}" class="btn btn-primary">+</a>
+            {% else %}
+            <p>No valid order ID available for cancellation.</p>
+            {% endif %}
+        </div>
+        <table class="table table-hover table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">Order Name</th>
+                    <th scope="col">Product</th>
+                    <th scope="col">Amount</th>
+                    <th scope="col">Price</th>
+                    <th scope="col"></th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if items|length == 0 %}
+                <tr>
+                    <th scope="row">-</th>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td></td>
+                </tr>
+                {% endif %}
+
+                {% for item in items %}
+                <tr>
+                    <th scope="row">{{ item.order }}</th>
+                    <td> {{ item.product }}</td>
+                    <td> {{ item.amount }}</td>
+                    <!---
+                    <td>
+                        <form method="POST" action="{% url 'edit-order-item' pk=order.pk order_item_id=item.id %}">
+                            {% csrf_token %}
+                            {{ form.product.as_hidden }}
+                            <input type="hidden" name="product" value="{{ item.product.id }}">
+                            <input type="number" name="amount" value="{{ item.amount }}">
+                            <input type="hidden" name="price" value="{{ item.price }}">
+                            <button type="submit">Save</button>
+                        </form>
+                    </td>
+                    -->
+
+                    <td class="text-danger">{{ item.price }}</td>
+                    <td><a href="{% url 'edit-order-item' pk=order.pk order_item_id=item.id %}"
+                            class="btn btn-outline-secondary">Edit</a></td>
+                    <td><a href="{% url 'delete-order-item' pk=order.pk order_item_id=item.id%}"
+                            class="btn btn-secondary">Delete</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div style="display: none;">
+            <input type="text" id="barcodeInput" placeholder="Enter barcode" onkeypress="handleKeyPress(event)">
+        </div>
+        <div style="display: none;">
+            <button onclick="markOrderAsChecked(20)">Mark as Checked</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    // Discard this for now. 
+    function toggleSearch() {
+        var searchSection = document.getElementById('searchSection');
+        if (searchSection.style.display === 'none' || searchSection.style.display === '') {
+            searchSection.style.display = 'block';
+        } else {
+            searchSection.style.display = 'none';
+        }
+    }
+
+    function handleKeyPress(event) {
+        if (event.keyCode === 13) {  // Check if the Enter key is pressed
+            event.preventDefault();  // Prevent the default behavior (form submission)
+            searchInventoryItem();  // Call the search function
+        }
+    }
+
+    function generateForm(productId, amount, price) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = "{% url 'add-order-item' pk=order.pk %}";
+        form.innerHTML = `
+        {% csrf_token %}
+        <input type="hidden" name="product" value="${productId}">
+        <input type="hidden" name="amount" value="${amount}" min="1">
+        <input type="hidden" name="price" value="${price}">
+        
+    `;
+        return form;
+    }
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function searchInventoryItem() {
+        var barcode = document.getElementById('barcodeInput').value;
+        // Send an AJAX request to the Django server
+        $.ajax({
+            url: 'search-inventory-item/',  // URL to your Django view
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') },
+            data: { 'barcode': barcode },  // Send the barcode to the server
+            dataType: 'json',
+            success: function (response) {
+                if (response.success) {
+                    const form = generateForm(response.inventory_item_id, response.amount, response.inventory_item_price);
+                    document.body.appendChild(form);
+                    form.submit();
+                } else {
+                    alert('InventoryItem not found for barcode: ' + barcode);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('AJAX request failed:', error);
+            }
+        });
+    }
+
+    function markOrderAsChecked(orderId) {
+        //alert('Marking order as Checked' + orderId);
+        $.ajax({
+            url: `${orderId}/mark_checked/`,
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') },
+            data: {},
+            dataType: 'json',
+
+            success: function (data) {
+                if (data.success) {
+                    alert('Order marked as Checked');
+                    // You can update the UI or reload the order list as needed
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            },
+            error: function () {
+                alert('An error occurred while marking the order as Checked');
+            }
+        });
+    }
+</script>
+
+
+{% endblock content %}

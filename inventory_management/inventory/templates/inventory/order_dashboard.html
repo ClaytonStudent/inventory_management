@@ -1,0 +1,73 @@
+{% extends 'inventory/base.html' %}
+
+{% block content %}
+{% if messages %}
+<div class="row mt-3">
+    {% for message in messages %}
+    {% if message.tags == 'error' %}
+    <div class="col-md-10 col-12 mx-auto alert alert-danger">
+        {{ message }}
+    </div>
+    {% else %}
+    <div class="col-md-10 col-12 mx-auto alert alert-success">
+        {{ message }}
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+<div class="row">
+    <div class="col-md-10 col-12 mx-auto mt-5">
+        <div class="d-flex justify-content-end">
+            <a href="{% url 'add-order' %}" class="btn btn-primary">+</a>
+        </div>
+
+        <table class="table table-hover table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Order Number</th>
+                    <th scope="col">Client</th>
+                    <th scope="col">Total Price</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Shipping Address</th>
+                    <th scope="col">Payment</th>
+                    <th scope="col"></th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if items|length == 0 %}
+                <tr>
+                    <th scope="row">-</th>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td></td>
+                </tr>
+                {% endif %}
+
+                {% for item in items %}
+                <tr>
+                    <th scope="row"><a href="{% url 'order-item-list' item.id %}">{{ item.id }} </a> </th>
+                    <td> {{ item.order_number }}</td>
+                    <td>{{ item.client }}</td>
+                    <td class="text-danger">{{ item.total_price }}</td>
+                    <td>{{ item.status }}</td>
+                    <td>{{ item.shipping_address }}</td>
+                    <td>{{ item.payment_method }}</td>
+                    <td><a href="{% url 'edit-order' item.id %}" class="btn btn-outline-secondary">Edit</a></td>
+                    <td><a href="{% url 'delete-order' item.id %}" class="btn btn-secondary">Delete</a></td>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock content %}

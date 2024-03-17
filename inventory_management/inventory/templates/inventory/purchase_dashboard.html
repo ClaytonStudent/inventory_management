@@ -1,0 +1,73 @@
+{% extends 'inventory/base.html' %}
+
+{% block content %}
+{% if messages %}
+<div class="row mt-3">
+    {% for message in messages %}
+    {% if message.tags == 'error' %}
+    <div class="col-md-10 col-12 mx-auto alert alert-danger">
+        {{ message }}
+    </div>
+    {% else %}
+    <div class="col-md-10 col-12 mx-auto alert alert-success">
+        {{ message }}
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+<div class="row">
+    <div class="col-md-10 col-12 mx-auto mt-5">
+        <div class="d-flex justify-content-end">
+            <a href="{% url 'add-purchase' %}" class="btn btn-primary">+</a>
+        </div>
+
+        <table class="table table-hover table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Purchase Number</th>
+                    <th scope="col">Provider</th>
+                    <th scope="col">Purchase Date</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Payment</th>
+                    <th scope="col">Price</th>
+                    <th scope="col"></th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if purchases|length == 0 %}
+                <tr>
+                    <th scope="row">-</th>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td></td>
+                </tr>
+                {% endif %}
+
+                {% for purchase in purchases %}
+                <tr>
+                    <th scope="row"><a href="{% url 'purchase-item-list' purchase.id %}">{{ purchase.id }} </a> </th>
+                    <td> {{ purchase.purchase_number }}</td>
+                    <td>{{ purchase.provider }}</td>
+                    <td class="text-danger">{{ purchase.purchase_date }}</td>
+                    <td>{{ purchase.status }}</td>
+                    <td>{{ purchase.payment_method }}</td>
+                    <td>{{ purchase.price }}</td>
+                    <td><a href="{% url 'edit-purchase' purchase.id %}" class="btn btn-outline-secondary">Edit</a></td>
+                    <td><a href="{% url 'delete-purchase' purchase.id %}" class="btn btn-secondary">Delete</a></td>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock content %}

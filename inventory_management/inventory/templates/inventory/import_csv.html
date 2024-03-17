@@ -1,0 +1,30 @@
+<!-- import_csv.html -->
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Import Inventory from CSV</title>
+</head>
+
+<body>
+    <h2>Import Inventory from CSV</h2>
+    {% if form_errors %}
+    <p>Found errors on line {{ row_count }}:
+    <p>
+    <ul>
+        {% for field, errors in form_errors.items %}
+        {% for error in errors %}
+        <li> {{field}}: {{ error }} </li>
+        {% endfor %}
+        {% endfor %}
+        {% elif row_count %}
+        <p>Successfully uploaded {{ row_count }} row(s)! 🥳</p>
+        {% endif %}
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="file" name="csv_file">
+            <button type="submit">Import</button>
+        </form>
+</body>
+
+</html>
