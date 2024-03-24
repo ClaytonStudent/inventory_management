@@ -194,9 +194,19 @@ class PurchaseOrder(models.Model):
     notes = models.TextField(blank=True, null=True)
     file = models.FileField(upload_to='purchase_orders/', blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    storaged = models.BooleanField(default=False)
     def __str__(self):
         return self.purchase_number
-
+    def update_price(self):
+        self.price = sum(item.price for item in self.purchaseitem_set.all())
+        print(self.price)
+    def save(self, *args, **kwargs):
+        self.update_price()
+        if self.pk:
+            pass
+        else:
+            super().save(*args, **kwargs)
+    '''
     def save(self, *args, **kwargs):
         if self.pk:
             original_status = None if self.pk is None else PurchaseOrder.objects.get(pk=self.pk).status
@@ -212,10 +222,8 @@ class PurchaseOrder(models.Model):
                     inventory_item = item.product
                     inventory_item.quantity += item.amount
                     inventory_item.save(update_fields=['quantity'])
+    '''
 
-    #def update_price(self):
-    #    self.price = sum(item.price for item in self.orderitem_set.all())
-    #    self.save()
 
 class PurchaseItem(models.Model):
     purchase_order = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE)

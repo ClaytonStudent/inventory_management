@@ -62,6 +62,13 @@
                     <td>{{ purchase.price }}</td>
                     <td><a href="{% url 'edit-purchase' purchase.id %}" class="btn btn-outline-secondary">Edit</a></td>
                     <td><a href="{% url 'delete-purchase' purchase.id %}" class="btn btn-secondary">Delete</a></td>
+                    {% if purchase.storaged %}
+                    <td><button class="btn btn-outline-secondary" disabled>Storaged</button></td>
+                    {% else %}
+                    <td><a href="{% url 'storage_to_warehouse' purchase.id %}"
+                            class="btn btn-outline-secondary">Storage</a></td>
+                    {% endif %}
+
                     </td>
                 </tr>
                 {% endfor %}

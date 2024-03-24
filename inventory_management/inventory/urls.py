@@ -7,8 +7,8 @@ from .views import ClientDashboard, AddClient, EditClient, DeleteClient
 from .views import InvoiceDashboard, AddInvoice, EditInvoice, DeleteInvoice
 from .views import export_inventory_to_csv, UploadClientView, UploadInventoryView
 from .views import PurchaseDashboard, AddPurchase, EditPurchase, DeletePurchase
-from .views import PurchaseItemDashboard, PurchaseItemAdd, PurchaseItemUpdate, PurchaseItemDelete
-from .views import create_purchase_order
+from .views import PurchaseItemDashboard, PurchaseItemAdd, PurchaseItemUpdate, PurchaseItemDelete,PurchaseOrder
+from .views import create_purchase_order, storage_to_warehouse
 from django.contrib.auth import views as auth_views
 from .views import search_inventory_item, mark_order_as_checked, create_order
 
@@ -69,4 +69,5 @@ urlpatterns = [
 
 
     path('create_purchase_order/', create_purchase_order, name='create_purchase_order'),
+    path('storage_to_warehouse/<int:pk>', storage_to_warehouse, name='storage_to_warehouse')
 ]

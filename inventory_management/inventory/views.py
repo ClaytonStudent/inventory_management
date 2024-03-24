@@ -6,7 +6,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .forms import UserRegisterForm, InventoryItemForm, OrderForm, OrderItemForm, InvoiceForm, ClientForm, UploadForm, PurchaseForm
 from .forms import PurchaseItemForm, PurchaseItemFormSet
-from .models import InventoryItem, Category, Order, OrderItem, Client, Invoice
+from .models import InventoryItem, Category, Order, OrderItem, Client, Invoice, Provider
 from .models import PurchaseOrder, PurchaseItem
 from inventory_management.settings import LOW_QUANTITY
 from django.contrib import messages
@@ -313,11 +313,14 @@ Purchase
 class PurchaseDashboard(LoginRequiredMixin, View):
 	def get(self, request):
 		purchases = PurchaseOrder.objects.order_by('id')
+		for purchase in purchases:
+			purchase.update_price()
 		return render(request, 'inventory/purchase_dashboard.html',{'purchases':purchases})
 
 class AddPurchase(LoginRequiredMixin, CreateView):
 	model = PurchaseOrder
-	form_class = PurchaseForm
+	fields = ['purchase_number', 'provider', 'payment_method', 'status', 'price']
+	#form_class = PurchaseForm
 	template_name = 'inventory/purchase_form.html'
 	success_url = reverse_lazy('purchase-dashboard')
 
@@ -327,7 +330,8 @@ class AddPurchase(LoginRequiredMixin, CreateView):
 
 class EditPurchase(LoginRequiredMixin, UpdateView):
 	model = PurchaseOrder
-	form_class = PurchaseForm
+	fields = ['purchase_number', 'provider', 'payment_method', 'status', 'price']
+	#form_class = PurchaseForm
 	template_name = 'inventory/purchase_form.html'
 	success_url = reverse_lazy('purchase-dashboard')
 
@@ -342,7 +346,7 @@ class DeletePurchase(LoginRequiredMixin, DeleteView):
 	context_object_name = 'item'
 
 '''
-Purchase
+Purchase Item
 '''
 class PurchaseItemDashboard(LoginRequiredMixin, View):
 	def get(self, request, pk):
@@ -400,7 +404,6 @@ class PurchaseItemUpdate(LoginRequiredMixin, UpdateView):
 
 	def form_valid(self, form):
 		return super().form_valid(form)
-
 
 class PurchaseItemDelete(LoginRequiredMixin, DeleteView):
 	model = PurchaseItem
@@ -552,3 +555,27 @@ def create_purchase_order(request):
     return render(request, 'inventory/purchase_order_form.html', {'form': form, 'formset': formset})
 
 
+def storage_to_warehouse(request,pk):
+	# Status 2 means the order is confirmed
+	if request:   
+		print(pk)        
+		purchase_order = PurchaseOrder.objects.get(pk=pk)
+		#purchase_order.storaged = True
+		for item in purchase_order.purchaseitem_set.all():
+			print('Adding inventory...',item.product.name )
+			inventory_item = item.product
+			inventory_item.quantity += item.amount
+			inventory_item.save(update_fields=['quantity'])
+		PurchaseOrder.objects.filter(pk=pk).update(storaged=True)
+		purchases = PurchaseOrder.objects.order_by('id')
+		for purchase in purchases:
+			purchase.update_price()
+		return render(request, 'inventory/purchase_dashboard.html',{'purchases':purchases})
+		
+		'''
+		for item in request.purchaseitem_set.all():
+			print('Adding inventory...',item.product.name + ' From ' + item.product.quantity + ' to Warehouse ' + item.amount)
+			inventory_item = item.product
+			inventory_item.quantity += item.amount
+			inventory_item.save(update_fields=['quantity'])
+		'''
